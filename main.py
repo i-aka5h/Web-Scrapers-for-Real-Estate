@@ -3,7 +3,6 @@ import requests
 from csv import writer
 import hyperlink
 
-# Enter city name
 city="amsterdam/"
 home_page="https://www.pararius.com/apartments/" + city
 total_pages=10
@@ -13,7 +12,7 @@ url_list=[home_page]
 for i in range(1,total_pages):
     url_list.append(home_page+"page-"+str(i))
     
-with open('Prarius Information.csv','w',newline='') as file:
+with open('Properties.csv','w',newline='') as file:
     writer = writer(file)
     header = ['Title','Location','Price','Area','Room','Brokerage Firm','Brokerage Firm link']
     writer.writerow(header)
