@@ -1,0 +1,68 @@
+from bs4 import BeautifulSoup
+import requests
+from csv import writer
+import hyperlink
+
+city="/houston-2/"
+home_page="https://www.trustedratings.net/realtor/united-states/tx" + city
+total_pages=1
+
+url_list=[] 
+
+def cfDecodeEmail(encodedString):
+    r = int(encodedString[:2],16)
+    email = ''.join([chr(int(encodedString[i:i+2], 16) ^ r) for i in range(2, len(encodedString), 2)]) 
+    return email
+
+for i in range(1,total_pages + 1):
+    url_list.append(home_page+"page/"+str(i))
+    
+with open('Agent.csv','w',newline='') as file:
+    writer = writer(file)
+    header = ['Name','Companny','Phone','Company Phone','Email','Street Address','City']
+    writer.writerow(header)
+    for url in url_list:
+        page = requests.get(url)
+
+        soup = BeautifulSoup(page.content,'html.parser')
+        lists = soup.find_all('h2',class_='geodir-entry-title')
+
+        for list in lists:
+            name = list.find('a').text.replace('\n','')
+            info_url = home_page + name
+            name_page = requests.get(info_url)
+            another_soup = BeautifulSoup(name_page.content,'html.parser')
+            
+            try :
+                company = another_soup.find('div',{'class' :'geodir-field-company'}).text.replace('\n','')
+            except :
+                company = " "
+            
+            try :
+                phone = another_soup.find('div',{'class' :'geodir-field-phone'}).text.replace('\n','')
+            except :
+                phone = " "
+            
+            try :
+                company_phone = another_soup.find('div',{'class' :'geodir-field-company_phone'}).text.replace('\n','')
+            except :
+                company_phone = " "
+                
+            try :
+                email = another_soup.find('div',{'class' :'geodir-field-email'})
+            except :
+                email = " "
+                
+            try:
+                temp = email.find('span',{'class':'__cf_email__'})['data-cfemail']
+                Email=cfDecodeEmail(temp)
+            except:
+                Email = " "
+            
+            try : 
+                address = another_soup.find('span',{'itemprop' : 'streetAddress'}).text.replace('\n','')
+            except :
+                address = " "
+                
+            info=[name, company, phone, company_phone, Email, address,"Houston"]
+            writer.writerow(info)
